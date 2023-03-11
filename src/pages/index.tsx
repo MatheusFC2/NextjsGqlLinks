@@ -2,10 +2,18 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
+import GqlClient from '../../graphql/apollo-client'
+import { gql } from 'apollo-server-micro'
+import { Link } from '../types/Link' 
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+type Props = {
+  links: Link[]
+}
+
+
+export default function Home({ links } : Props) {
   return (
     <>
       <Head>
@@ -16,9 +24,14 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <div className={styles.description}>
+          {links.map((link, index) => (
+            <a key={index} href={link.url}>
+              <p>Total de links: {link.title} {link.url}</p>
+  
+            </a>
+          ))}
           <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
+            Total de links: {links.length}
           </p>
           <div>
             <a
@@ -120,4 +133,27 @@ export default function Home() {
       </main>
     </>
   )
+}
+
+
+export const getServerSideProps = async () => {
+  const { data } = await GqlClient.query({
+    query: gql`
+      query {
+        links {
+          id
+          title
+          url
+        }
+      }
+    `
+  }) ;
+
+  console.log(data.links)
+
+  return {
+    props: {
+      links: data.links
+    },
+  }
 }
